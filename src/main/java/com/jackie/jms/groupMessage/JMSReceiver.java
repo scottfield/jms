@@ -1,31 +1,16 @@
 package com.jackie.jms.groupMessage;
 
-import javax.jms.Message;
-import javax.jms.MessageListener;
-import javax.jms.Queue;
-import javax.jms.QueueConnection;
-import javax.jms.QueueConnectionFactory;
-import javax.jms.QueueReceiver;
-import javax.jms.QueueSession;
-import javax.jms.Session;
-import javax.jms.TextMessage;
+import javax.jms.*;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Title(文件名): JMSReceiver<p>
- * Description(描述):<p>
- * Copyright(版权): Copyright (c) 2016<p>
- * Company(公司): 成都四方伟业软件股份有限公司<p>
- * CreateTime(生成日期):2017/5/5
- *
- * @author SF-2171
+ * Created by jackie on 5/4/2017.
  */
 public class JMSReceiver implements MessageListener {
     private List<String> messageBuffer = new ArrayList<String>();
-
     public JMSReceiver() {
         try {
             Context ctx = new InitialContext();
@@ -35,14 +20,13 @@ public class JMSReceiver implements MessageListener {
             connection.start();
             QueueSession session =
                     connection.createQueueSession(false, Session.CLIENT_ACKNOWLEDGE);
-            Queue queue = (Queue) ctx.lookup("queue1");
+            Queue queue = (Queue)ctx.lookup("queue1");
             QueueReceiver receiver = session.createReceiver(queue);
             receiver.setMessageListener(this);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
-
     public void onMessage(Message message) {
         try {
             if (message.propertyExists("SequenceMarker")) {
@@ -71,7 +55,7 @@ public class JMSReceiver implements MessageListener {
             }
 //save the message contents if it is a non-marker message
             if (message instanceof TextMessage) {
-                TextMessage msg = (TextMessage) message;
+                TextMessage msg = (TextMessage)message;
                 processInterimMessage(msg.getText());
             }
 //wait for the next message
@@ -81,17 +65,14 @@ public class JMSReceiver implements MessageListener {
             System.exit(1);
         }
     }
-
     public void processCompensatingTransaction() {
 //reverse the processing from the prior message set
         messageBuffer.clear();
     }
-
     public void processInterimMessage(String msg) {
 //process the interim message
         messageBuffer.add(msg);
     }
-
     public static void main(String argv[]) {
         new JMSReceiver();
     }
