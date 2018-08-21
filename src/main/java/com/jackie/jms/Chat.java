@@ -75,6 +75,7 @@ public class Chat implements MessageListener {
         TextMessage message = pubSession.createTextMessage();
         message.setText(username+": "+text);
         publisher.publish(message);
+        System.out.println("kdafdafda");
     }
     /* Close the JMS Connection */
     public void close() throws JMSException {

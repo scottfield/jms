@@ -11,6 +11,7 @@ public class JMSSender {
     private QueueConnection connection = null;
     private QueueSession session = null;
     private QueueSender sender = null;
+
     public static void main(String[] args) {
         try {
             JMSSender app = new JMSSender();
@@ -20,6 +21,7 @@ public class JMSSender {
             ex.printStackTrace();
         }
     }
+
     public JMSSender() {
         try {
 //connect to the jms provider and create the
@@ -31,32 +33,38 @@ public class JMSSender {
             connection.start();
             session =
                     connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
-            Queue queue = (Queue)ctx.lookup("queue1");
+            Queue queue = (Queue) ctx.lookup("queue1");
             sender = session.createSender(queue);
         } catch (Exception jmse) {
             jmse.printStackTrace();
         }
     }
+
     public void sendMessageGroup() throws JMSException {
 //send the messages as a group
-        sendSequenceMarker("START_SEQUENCE");
-        sendMessage("First Message");
-        sendMessage("Second Message");
-        sendMessage("Third Message");
-        sendSequenceMarker("END_SEQUENCE");
+        int i = 0;
+        sendSequenceMarker("START_SEQUENCE", i++);
+        sendMessage("First Message", i++);
+        sendMessage("Second Message", i++);
+        sendMessage("Third Message", i++);
+        sendSequenceMarker("END_SEQUENCE", i++);
         connection.close();
     }
+
     //send a simple text message within the group of messages
-    private void sendMessage(String text) throws JMSException {
+    private void sendMessage(String text, Integer sequence) throws JMSException {
         TextMessage msg = session.createTextMessage(text);
         msg.setStringProperty("JMSXGroupID", "GROUP1");
+        msg.setIntProperty("JMSXGroupSeq", sequence);
         sender.send(msg);
     }
+
     //send an empty payload message containing the sequence marker
-    private void sendSequenceMarker(String marker) throws JMSException {
+    private void sendSequenceMarker(String marker, Integer sequence) throws JMSException {
         BytesMessage msg = session.createBytesMessage();
         msg.setStringProperty("SequenceMarker", marker);
         msg.setStringProperty("JMSXGroupID", "GROUP1");
+        msg.setIntProperty("JMSXGroupSeq", sequence);
         sender.send(msg);
     }
 }
